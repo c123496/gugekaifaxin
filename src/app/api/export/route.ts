@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkAccess } from '@/lib/auth';
 import { sql } from '@/lib/db';
 import { buildExcel, type ExportRow } from '@/lib/excel';
+import { attachmentDisposition } from '@/lib/httpHeaders';
 
 export async function POST(req: NextRequest) {
   const key = req.nextUrl.searchParams.get('key');
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     status: 200,
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename="开发信客户邮箱.xlsx"`,
+      'Content-Disposition': attachmentDisposition('开发信客户邮箱.xlsx', 'kaifaxin.xlsx'),
     },
   });
 }
