@@ -3,9 +3,14 @@ import { useEffect, useState, useCallback } from 'react';
 import { SearchPanel } from '@/components/SearchPanel';
 import { CompanyTable, type CompanyRow } from '@/components/CompanyTable';
 import { LetterPreview } from '@/components/LetterPreview';
+import { Gate } from '@/components/Gate';
+
+const KEY_STORAGE = 'jd_access_key';
 
 export default function Page() {
+  const [ready, setReady] = useState(false);
   const [accessKey, setAccessKey] = useState('');
+  const [authFailed, setAuthFailed] = useState(false);
   const [regionId, setRegionId] = useState('us');
   const [rows, setRows] = useState<CompanyRow[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -14,15 +19,26 @@ export default function Page() {
   const [preview, setPreview] = useState<{ subject: string; body: string } | null>(null);
 
   useEffect(() => {
-    const k = new URLSearchParams(window.location.search).get('key') ?? '';
+    const urlKey = new URLSearchParams(window.location.search).get('key');
+    const stored = localStorage.getItem(KEY_STORAGE);
+    const k = urlKey || stored || '';
+    if (urlKey) localStorage.setItem(KEY_STORAGE, urlKey);
     setAccessKey(k);
+    setReady(true);
   }, []);
+
+  function submitKey(k: string) {
+    localStorage.setItem(KEY_STORAGE, k);
+    setAuthFailed(false);
+    setAccessKey(k);
+  }
 
   const qs = `?key=${encodeURIComponent(accessKey)}`;
 
   const refresh = useCallback(async () => {
     const res = await fetch(`/api/companies${qs}`);
-    if (!res.ok) { setMsg('鉴权失败，请检查网址 key 参数'); return; }
+    if (res.status === 401) { setAuthFailed(true); return; }
+    if (!res.ok) { setMsg('加载失败，请稍后重试'); return; }
     const data = await res.json();
     setRows(data.companies);
   }, [qs]);
@@ -86,6 +102,9 @@ export default function Page() {
     setPreview(first ? { subject: first.subject!, body: first.body! } : null);
     if (!first) setMsg('选中的公司里没有已生成的开发信');
   }
+
+  if (!ready) return null;
+  if (!accessKey || authFailed) return <Gate error={authFailed} onSubmit={submitKey} />;
 
   const withEmail = rows.filter((r) => r.email).length;
   const generated = rows.filter((r) => r.subject).length;
