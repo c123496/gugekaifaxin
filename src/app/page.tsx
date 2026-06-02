@@ -81,21 +81,71 @@ export default function Page() {
     await refresh();
   }
 
+  function onPreview() {
+    const first = rows.find((r) => selected.has(r.id) && r.subject);
+    setPreview(first ? { subject: first.subject!, body: first.body! } : null);
+    if (!first) setMsg('选中的公司里没有已生成的开发信');
+  }
+
+  const withEmail = rows.filter((r) => r.email).length;
+  const generated = rows.filter((r) => r.subject).length;
+  const bannerClass = msg.includes('失败') || msg.includes('鉴权') || msg.includes('没有')
+    ? 'banner banner--err'
+    : (msg.includes('完成') || msg.includes('已生成') ? 'banner banner--ok' : 'banner');
+
   return (
-    <main style={{ maxWidth: 1100, margin: '0 auto', padding: 24 }}>
-      <h1>金达外贸开发信工具</h1>
-      {msg && <p style={{ color: '#0a6' }}>{msg}</p>}
-      <SearchPanel regionId={regionId} setRegionId={setRegionId} onSearch={onSearch} loading={loading} />
-      <div style={{ margin: '12px 0', display: 'flex', gap: 8 }}>
-        <button onClick={onGenerate}>为选中生成开发信</button>
-        <button onClick={onExport}>导出 Excel</button>
-        <button onClick={() => {
-          const first = rows.find((r) => selected.has(r.id) && r.subject);
-          setPreview(first ? { subject: first.subject!, body: first.body! } : null);
-        }}>预览选中第一封</button>
-      </div>
-      <CompanyTable rows={rows} selected={selected} toggle={toggle} toggleAll={toggleAll} />
-      {preview && <LetterPreview subject={preview.subject} body={preview.body} />}
-    </main>
+    <>
+      <header className="masthead">
+        <div className="masthead__inner">
+          <div className="brand">
+            <span className="brand__mark">JD</span>
+            <div>
+              <h1 className="brand__title">金达外贸开发信工具</h1>
+              <p className="brand__sub">Hi-Vis 客户开发 · 搜索 → 抓邮箱 → AI 开发信 → 导出 Excel</p>
+            </div>
+          </div>
+          <div className="masthead__meta"><span className="dot" />新乡金达反光制品</div>
+        </div>
+        <div className="hazard-strip" />
+      </header>
+
+      <main className="container">
+        {msg && <div className={bannerClass}>{msg}</div>}
+
+        <SearchPanel regionId={regionId} setRegionId={setRegionId} onSearch={onSearch} loading={loading} />
+
+        <section className="panel worktable">
+          <div className="toolbar">
+            <div className="stats">
+              <div className="stat">
+                <span className="stat__num">{rows.length}</span>
+                <span className="stat__label">客户总数</span>
+              </div>
+              <div className="stat__sep" />
+              <div className="stat">
+                <span className="stat__num stat__num--hivis">{withEmail}</span>
+                <span className="stat__label">有邮箱</span>
+              </div>
+              <div className="stat__sep" />
+              <div className="stat">
+                <span className="stat__num stat__num--blue">{generated}</span>
+                <span className="stat__label">已生成信</span>
+              </div>
+            </div>
+            <div className="actions">
+              <span className="sel-count">已选 <b>{selected.size}</b> 家</span>
+              <button className="btn" onClick={onPreview}>预览选中第一封</button>
+              <button className="btn btn--primary" onClick={onGenerate}>为选中生成开发信</button>
+              <button className="btn btn--hivis" onClick={onExport}>导出 Excel</button>
+            </div>
+          </div>
+          <CompanyTable rows={rows} selected={selected} toggle={toggle} toggleAll={toggleAll} />
+        </section>
+
+        {preview && (
+          <LetterPreview subject={preview.subject} body={preview.body} onClose={() => setPreview(null)} />
+        )}
+      </main>
+    </>
   );
 }

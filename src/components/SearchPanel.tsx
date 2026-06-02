@@ -1,5 +1,15 @@
 'use client';
-import { CATEGORIES, REGIONS } from '@/lib/searchQueries';
+import { CATEGORIES, REGIONS, type CategoryId } from '@/lib/searchQueries';
+
+const ICONS: Record<CategoryId, string> = {
+  hiviz: '🦺',
+  ppe: '🛡️',
+  roadwork: '🚧',
+  workwear: '🧥',
+  industrial: '⚙️',
+  contractor: '🏗️',
+  police: '🚓',
+};
 
 export function SearchPanel({
   regionId, setRegionId, onSearch, loading,
@@ -10,24 +20,38 @@ export function SearchPanel({
   loading: string | null;
 }) {
   return (
-    <section style={{ background: '#fff', padding: 16, borderRadius: 8, marginBottom: 16 }}>
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ fontWeight: 600, marginRight: 8 }}>地区：</label>
-        <select value={regionId} onChange={(e) => setRegionId(e.target.value)}>
+    <section className="panel search">
+      <div className="search__head">
+        <span className="search__label">地区</span>
+        <select
+          className="select"
+          value={regionId}
+          onChange={(e) => setRegionId(e.target.value)}
+          disabled={loading !== null}
+        >
           {REGIONS.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
         </select>
+        <span className="search__hint">点击下方分类卡片，自动联网搜索 + 抓取官网邮箱</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.id}
-            disabled={loading !== null}
-            onClick={() => onSearch(c.id)}
-            style={{ padding: 12, cursor: 'pointer', border: '1px solid #d0d0d0', borderRadius: 6, background: loading === c.id ? '#eee' : '#fafafa' }}
-          >
-            {loading === c.id ? '搜索中…' : c.label}
-          </button>
-        ))}
+      <div className="cards">
+        {CATEGORIES.map((c, i) => {
+          const isLoading = loading === c.id;
+          return (
+            <button
+              key={c.id}
+              className={`card${isLoading ? ' card--loading' : ''}`}
+              style={{ animationDelay: `${i * 45}ms` }}
+              disabled={loading !== null}
+              onClick={() => onSearch(c.id)}
+            >
+              <span className="card__icon">{ICONS[c.id]}</span>
+              <span className="card__label">{c.label}</span>
+              {isLoading
+                ? <span className="spinner" aria-label="搜索中" />
+                : <span className="card__arrow">→</span>}
+            </button>
+          );
+        })}
       </div>
     </section>
   );
