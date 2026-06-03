@@ -117,13 +117,13 @@ export default function Page() {
       <header className="masthead">
         <div className="masthead__inner">
           <div className="brand">
-            <span className="brand__mark">JD</span>
+            <span className="brand__mark">✉</span>
             <div>
-              <h1 className="brand__title">金达外贸开发信工具</h1>
+              <h1 className="brand__title">外贸开发信工具</h1>
               <p className="brand__sub">Hi-Vis 客户开发 · 搜索 → 抓邮箱 → AI 开发信 → 导出 Excel</p>
             </div>
           </div>
-          <div className="masthead__meta"><span className="dot" />新乡金达反光制品</div>
+          <div className="masthead__meta"><span className="dot" />外贸客户开发系统</div>
         </div>
         <div className="hazard-strip" />
       </header>
